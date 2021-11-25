@@ -14,6 +14,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import com.perisic.sixeq.engine.GameDb;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -46,16 +49,7 @@ public class LoginGUI extends JPanel implements ActionListener{
 		passField = new JTextField(25);
 		submitButton = new JButton();
 		
-		try {
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			connection = DriverManager.getConnection(DATABASE_URL, "root", "");
-			statement = connection.createStatement();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 		
 		
 		
@@ -117,31 +111,33 @@ public class LoginGUI extends JPanel implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
+		GameDb gameDb = new GameDb();
 		try {
+			
 			String queryString =String.format("SELECT COUNT(*) FROM users WHERE username='%s' AND password='%s'",emailField.getText(),passField.getText());
-			resultSet = statement.executeQuery(queryString);
-			ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-			int colCount =  resultSetMetaData.getColumnCount();
-			System.out.printf("colCount %d",colCount);
-			if(colCount >0) {
+			gameDb.query(queryString);
+			resultSet = gameDb. getResultSet();
+			ResultSetMetaData resultSetMetaData = gameDb.getMetaData();
+			int colCount = resultSetMetaData.getColumnCount();
+			
+			if(colCount >0 ) {
+				resultSet.next();
+				if((Long)resultSet.getObject(1)  >0) { 
+				
 				this.replaceScreen.moveToGame(true, emailField.getText());
-			}else {
-				this.replaceScreen.moveToGame(false,emailField.getText());
+				return;
+				}
 			}
-			
+			this.replaceScreen.moveToGame(false,emailField.getText());
 		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		} finally {
-			try {
-				resultSet.close();
-				statement.close();
-				connection.close();
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			
+		}finally {
+			gameDb.closeResource();
 		}
+		
+		
+		
 	}
 	
 	interface ReplaceScreen {

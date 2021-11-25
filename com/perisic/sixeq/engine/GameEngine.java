@@ -24,7 +24,8 @@ public class GameEngine {
 	 * 
 	 * @param player
 	 */
-	public GameEngine(String player) {
+	public GameEngine(String player, int level) {
+		counter = level;
 		gameFiles = new File("com/perisic/sixeq/peripherals/assets/");
 		System.out.printf("FileLength: %d\n", gameFiles.length());
 		System.out.printf("FilePath: %s \n",gameFiles.getPath());
@@ -50,7 +51,7 @@ public class GameEngine {
 		thePlayer = player;
 	}
 
-	int counter = 0;
+	public int counter = 0;
 	int score = 0; 
 /*
  * Retrieves a game. This basic version only has two games that alternate.

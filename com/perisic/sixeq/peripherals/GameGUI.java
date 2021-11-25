@@ -6,9 +6,13 @@ import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 
 import javax.swing.*;
 
+import com.perisic.sixeq.engine.GameDb;
 import com.perisic.sixeq.engine.GameEngine;
 import com.perisic.sixeq.peripherals.LoginGUI.ReplaceScreen;
 
@@ -21,6 +25,9 @@ import com.perisic.sixeq.peripherals.LoginGUI.ReplaceScreen;
 public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 
 	private static final long serialVersionUID = -107785653906635L;
+	ResultSet  resultSet;
+	String username="";
+
 
 	/**
 	 * Method that is called when a button has been pressed.
@@ -33,13 +40,165 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 		if (correct) {
 			System.out.println("YEAH!");
 			currentGame = myGame.nextGame(); 
+			updateLevelDb(myGame.counter);
 			ImageIcon ii = new ImageIcon(currentGame);
 			questArea.setIcon(ii);
-			infoArea.setText("Good!  Score: "+score);
+			if(score > getMax().intValue() ) {
+				updateScoreDb(score);
+			}
+			String infoText = String.format("LEVEL: %d\tHighest: %d\tAll Time High: %d\t\tGood!  Score: %d",getLastStage(), getMax(), allTimeHigh(), score);
+			System.out.println(infoText);
+			infoArea.setText(infoText);
 		} else { 
-			System.out.println("Not Correct"); 
-			infoArea.setText("Oops. Try again!  Score: "+score);
+			System.out.println("Not Correct");
+			String infoText = String.format("LEVEL: %d\tHighest: %d\tAll Time High: %d\t\tOops. Try again!  Score: %d",getLastStage(), getMax(), allTimeHigh(), score);
+			System.out.println(infoText);
+			
+			infoArea.setText(infoText);
 		}
+	}
+	
+	
+	void updateScoreDb(int score) {
+		GameDb gameDb = new GameDb();
+		try {
+			
+			String queryString =String.format("UPDATE users SET highest_score=%d WHERE username='%s'",score,username);
+			System.out.print(queryString);
+			boolean status= gameDb.execQuery(queryString);
+			System.out.print(status);
+//			resultSet = gameDb. getResultSet();
+//			ResultSetMetaData resultSetMetaData = gameDb.getMetaData();
+//			int colCount = resultSetMetaData.getColumnCount();
+			/*
+			 * if(colCount >0 ) { resultSet.next(); long max = (long)resultSet.getObject(1);
+			 * 
+			 * 
+			 * 
+			 * }
+			 */			
+			
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}finally {
+			gameDb.closeResource();
+		}
+		
+		
+	}
+	
+	void updateLevelDb(int level) {
+		GameDb gameDb = new GameDb();
+		try {
+			
+			String queryString =String.format("UPDATE users SET level=%d WHERE username='%s'",level,username);
+			System.out.print(queryString);
+			boolean status= gameDb.execQuery(queryString);
+			System.out.print(status);
+//			resultSet = gameDb. getResultSet();
+//			ResultSetMetaData resultSetMetaData = gameDb.getMetaData();
+//			int colCount = resultSetMetaData.getColumnCount();
+			/*
+			 * if(colCount >0 ) { resultSet.next(); long max = (long)resultSet.getObject(1);
+			 * 
+			 * 
+			 * 
+			 * }
+			 */			
+			
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}finally {
+			gameDb.closeResource();
+		}
+		
+		
+	}
+	
+	Long allTimeHigh() {
+		GameDb gameDb = new GameDb();
+		try {
+			
+			String queryString =String.format("SELECT MAX(highest_score) FROM users");
+			gameDb.query(queryString);
+			resultSet = gameDb. getResultSet();
+			ResultSetMetaData resultSetMetaData = gameDb.getMetaData();
+			int colCount = resultSetMetaData.getColumnCount();
+			if(colCount >0 ) {
+				resultSet.next();
+				long max = (long)resultSet.getObject(1);
+				return max;
+					
+				
+			}
+			
+			
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}finally {
+			gameDb.closeResource();
+		}
+		
+		return (long)0;
+	}
+	
+	Long getMax() {
+		GameDb gameDb = new GameDb();
+		try {
+			
+			String queryString =String.format("SELECT highest_score FROM users WHERE username='%s'",username);
+			 gameDb.query(queryString);
+			resultSet = gameDb. getResultSet();
+			ResultSetMetaData resultSetMetaData = gameDb.getMetaData();
+			int colCount = resultSetMetaData.getColumnCount();
+			if(colCount >0 ) {
+				resultSet.next();
+				long max =  (long)resultSet.getObject(1);
+				return max;
+					
+				
+			}
+			
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}finally {
+			gameDb.closeResource();
+		}
+		
+		return (long)0;
+	}
+	
+	Long getLastStage() {
+		GameDb gameDb = new GameDb();
+		try {
+			
+			String queryString =String.format("SELECT level FROM users WHERE username='%s'",username);
+			gameDb.query(queryString);
+			resultSet = gameDb. getResultSet();
+			ResultSetMetaData resultSetMetaData = gameDb.getMetaData();
+			int colCount = resultSetMetaData.getColumnCount();
+			System.out.printf("COL SIZE: %d", colCount);
+			System.out.printf("COL SIZE: %s", resultSetMetaData.getColumnName(1));
+
+			if(colCount >0 ) {
+				resultSet.next();
+
+				long stage = (long)(resultSet.getObject(1));
+				return stage;		
+			}
+			
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}finally {
+			gameDb.closeResource();
+		}
+		
+		return (long) 0.0;
 	}
 
 	JLabel questArea = null;
@@ -98,13 +257,15 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 		if(login == false) {
 			return;
 		}
+		
+	this.username = username;
 		panel.remove(loginGUI);
 //		super.repaint();
 		panel.setLayout(new BorderLayout());
 
 		JPanel panelButton = new JPanel(new FlowLayout());
 
-		myGame = new GameEngine(username);
+		myGame = new GameEngine(username, getLastStage().intValue());
 		currentGame = myGame.nextGame();
 
 		infoArea = new JTextArea(1, 40);
