@@ -31,7 +31,7 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 	String username="";
 	Timer timer;
 	JLabel timerLabel;
-	int timeLeft = 15000;
+	int timeLeft = 30000;
 	JPanel retryPanel = new JPanel();
 	JButton retryBtn;
 
@@ -67,7 +67,7 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 		}}else {
 			panel.setVisible(true);
             retryPanel.setVisible(false);
-            timeLeft = 15000;
+            timeLeft = 30000;
             moveToGame(true, username);
             
             GameGUI.this.revalidate();
