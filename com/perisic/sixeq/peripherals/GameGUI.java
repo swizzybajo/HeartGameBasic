@@ -9,12 +9,14 @@ import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 
 import javax.swing.*;
 
 import com.perisic.sixeq.engine.GameDb;
 import com.perisic.sixeq.engine.GameEngine;
 import com.perisic.sixeq.peripherals.LoginGUI.ReplaceScreen;
+import com.sun.net.httpserver.Authenticator.Retry;
 
 /**
  * A Simple Graphical User Interface for the Six Equation Game.
@@ -27,6 +29,11 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 	private static final long serialVersionUID = -107785653906635L;
 	ResultSet  resultSet;
 	String username="";
+	Timer timer;
+	JLabel timerLabel;
+	int timeLeft = 15000;
+	JPanel retryPanel = new JPanel();
+	JButton retryBtn;
 
 
 	/**
@@ -34,6 +41,7 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		if(e.getSource() != retryBtn) {
 		int solution = Integer.parseInt(e.getActionCommand());
 		boolean correct = myGame.checkSolution(currentGame, solution);
 		int score = myGame.getScore(); 
@@ -43,6 +51,7 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 			updateLevelDb(myGame.counter);
 			ImageIcon ii = new ImageIcon(currentGame);
 			questArea.setIcon(ii);
+			timeLeft+=5000;
 			if(score > getMax().intValue() ) {
 				updateScoreDb(score);
 			}
@@ -55,6 +64,14 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 			System.out.println(infoText);
 			
 			infoArea.setText(infoText);
+		}}else {
+			panel.setVisible(true);
+            retryPanel.setVisible(false);
+            timeLeft = 15000;
+            moveToGame(true, username);
+            
+            GameGUI.this.revalidate();
+            GameGUI.this.repaint();
 		}
 	}
 	
@@ -208,21 +225,55 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 	JPanel panel;
 	String player;
 	LoginGUI loginGUI;
+	
 /**
  * Initializes the game. 
  * @param player
  */
 	private void initGame(String player) {
 		setSize(690, 500);
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("What is the value of the heart?");
 		panel = new JPanel();
 		loginGUI = new LoginGUI(this);
 		panel.add(loginGUI);
 		
+		 retryBtn = new JButton("Retry");
+			retryBtn.addActionListener(this);
+			retryPanel.add(retryBtn);
+			retryPanel.setVisible(false);
+			
+		
 		getContentPane().add(panel);
 		panel.repaint();
 
+	}
+	
+	private void initTimer() {
+		
+		timerLabel = new JLabel(String.format("%d",timeLeft));
+		ActionListener al=new ActionListener() {
+		    public void actionPerformed(ActionEvent ae) {
+		    	timeLeft -= 1000;
+		    	System.out.printf("TimeLeft: %d",timeLeft);
+		        SimpleDateFormat df=new SimpleDateFormat("mm:ss:S");
+		        timerLabel.setText(df.format(timeLeft));
+		        if(timeLeft<=0)
+		        {
+		            timer.stop();
+		            panel.setVisible(false);
+		            retryPanel.setVisible(true);
+		            
+		            GameGUI.this.revalidate();
+		            GameGUI.this.repaint();
+		            
+		        }
+		    }
+		};
+		timer=new Timer(1000,al);//create the timer which calls the actionperformed method for every 1000 millisecond(1 second=1000 millisecond)
+		
+		timer.start();//start the task
 	}
 /**
  * Default player is null. 
@@ -257,7 +308,7 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 		if(login == false) {
 			return;
 		}
-		
+		initTimer();
 	this.username = username;
 		panel.remove(loginGUI);
 //		super.repaint();
@@ -274,7 +325,11 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 		infoArea.setText("What is the value of the Heart?   Score: 0");
 		
 		JScrollPane infoPane = new JScrollPane(infoArea);
-		panel.add(infoPane,BorderLayout.NORTH);
+		JPanel infoPanel = new JPanel();
+		infoPanel.add(infoPane);
+		infoPanel.add(timerLabel);
+		
+		panel.add(infoPanel,BorderLayout.NORTH);
 		
 
 		ImageIcon ii = new ImageIcon(currentGame);
@@ -291,6 +346,9 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 			btn.addActionListener(this);
 		}
 		panel.add(panelButton,BorderLayout.SOUTH);
+		
+		
+		getContentPane().add(retryPanel);
 
 //		panel.repaint();
 		super.revalidate();
