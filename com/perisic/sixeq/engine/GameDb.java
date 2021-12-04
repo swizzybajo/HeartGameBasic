@@ -62,7 +62,8 @@ public class GameDb {
 				e2.printStackTrace();
 			}
 			String queryString =String.format(query);
-			boolean state = statement. execute(queryString);
+			boolean state = statement .execute(queryString);
+			System.out.print(state);
 			return state;
 //			return resultSet;
 			/*
@@ -81,8 +82,46 @@ public class GameDb {
 			 */			
 		} catch (SQLException e1) {
 			e1.printStackTrace();
+			return false;
 		}
-		return false; 
+	}
+	
+	
+	public int execUpdate(String query) {
+		try {
+			try {
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				connection = DriverManager.getConnection(DATABASE_URL, "root", "");
+				statement = connection.createStatement();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			} catch (ClassNotFoundException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			String queryString =String.format(query);
+			int state = statement.executeUpdate(queryString);
+			System.out.println(state);
+			return state;
+//			return resultSet;
+			/*
+			 * ResultSetMetaData resultSetMetaData = resultSet.getMetaData(); int colCount =
+			 * resultSetMetaData.getColumnCount();
+			 * 
+			 * 
+			 * 
+			 * if(colCount >0 ) { resultSet.next(); if((Long)resultSet.getObject(1) >0) {
+			 * 
+			 * this.replaceScreen.moveToGame(true, emailField.getText()); return; } }
+			 * this.replaceScreen.moveToGame(false,emailField.getText());
+			 */			/*
+			 * if(colCount >0) { this.replaceScreen.moveToGame(true, emailField.getText());
+			 * }else { this.replaceScreen.moveToGame(false,emailField.getText()); }
+			 */			
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+			return 0;
+		}
 	}
 	
 	public ResultSetMetaData getMetaData() {

@@ -1,5 +1,6 @@
 package com.perisic.sixeq.peripherals;
 
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -24,10 +25,12 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class LoginGUI extends JPanel implements ActionListener{
+public class RegisterationGUI extends JPanel implements ActionListener{
 	
 	JTextField emailField, passField;
-	JButton submitButton, registerationButton;
+	JButton loginButton;
+	JButton signupButton;
+
 	static final String DATABASE_URL = "jdbc:mysql://localhost/heartgame";
 	
 	Connection connection;
@@ -36,7 +39,7 @@ public class LoginGUI extends JPanel implements ActionListener{
 	ReplaceScreen replaceScreen;
 	
 	
-	public LoginGUI(ReplaceScreen replaceScreen) {
+	public RegisterationGUI(ReplaceScreen replaceScreen) {
 		
 		
 		super(new GridBagLayout());
@@ -47,29 +50,29 @@ public class LoginGUI extends JPanel implements ActionListener{
 		
 		emailField = new JTextField(25);
 		passField = new JTextField(25);
-		submitButton = new JButton();
-		registerationButton = new JButton();
+		loginButton = new JButton();
+		signupButton = new JButton();
 		
 		
 		
 		
 		
 		
-		
-		submitButton.setText("LOGIN");
-		registerationButton.setText("Go to registeration");
+		loginButton.setText("Go to Login");
+
+		signupButton.setText("Register");
 
 		JPanel emailPanel = new JPanel(new FlowLayout());
 		JPanel passPanel = new JPanel(new FlowLayout());
 		JPanel actionPanel = new JPanel(new FlowLayout());
 		
-		submitButton.setSize(new Dimension(5, 25));
+		loginButton.setSize(new Dimension(5, 25));
 
-		submitButton.setMaximumSize(new Dimension(5, 25));
+		loginButton.setMaximumSize(new Dimension(5, 25));
 		
-		registerationButton.setSize(new Dimension(5, 25));
+		signupButton.setSize(new Dimension(5, 25));
 
-		registerationButton.setMaximumSize(new Dimension(5, 25));
+		signupButton.setMaximumSize(new Dimension(5, 25));
 		
 		
 		
@@ -80,8 +83,8 @@ public class LoginGUI extends JPanel implements ActionListener{
 		passPanel.add(new JLabel("Password:"));
 		passPanel.add(passField);
 		
-		actionPanel.add(submitButton);
-		actionPanel.add(registerationButton);
+		actionPanel.add(loginButton);
+		actionPanel.add(signupButton);
 		
 
 		
@@ -90,8 +93,8 @@ public class LoginGUI extends JPanel implements ActionListener{
 		
 		
 		
-		submitButton.addActionListener(this);
-		registerationButton.addActionListener(this);
+		loginButton.addActionListener(this);
+		signupButton.addActionListener(this);
 		setAlignmentX(LEFT_ALIGNMENT);
 
 		
@@ -123,43 +126,34 @@ public class LoginGUI extends JPanel implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
-		if(e.getSource()== submitButton) {
+		if(e.getSource() == signupButton) {
 		
 		GameDb gameDb = new GameDb();
 		try {
 			
-			String queryString =String.format("SELECT COUNT(*) FROM users WHERE username='%s' AND password='%s'",emailField.getText(),passField.getText());
-			gameDb.query(queryString);
-			resultSet = gameDb. getResultSet();
-			ResultSetMetaData resultSetMetaData = gameDb.getMetaData();
-			int colCount = resultSetMetaData.getColumnCount();
-			
-			if(colCount >0 ) {
-				resultSet.next();
-				if((Long)resultSet.getObject(1)  >0) { 
-				
-				this.replaceScreen.moveToGame(true, emailField.getText());
-				return;
-				}
-			}
-			this.replaceScreen.moveToGame(false,emailField.getText());
-		} catch (SQLException e1) {
+			String queryString =String.format("INSERT INTO users (username, password) VALUES ('%s','%s')",emailField.getText(),passField.getText());
+//			gameDb.query(queryString);
+			int status= gameDb.execUpdate(queryString);
+			System.out.println(status);
+			this.replaceScreen.moveToGame(status==1?true:false, emailField.getText());
+		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}finally {
 			gameDb.closeResource();
 		}
 		}else {
-			this.replaceScreen.moveToRegister();
+			this.replaceScreen.moveToLogin();
 		}
+		
 		
 		
 	}
 	
 	interface ReplaceScreen {
 		void moveToGame(boolean login, String username);
-		void moveToRegister();
-		
+		void moveToLogin();
 	}
 
 }
+

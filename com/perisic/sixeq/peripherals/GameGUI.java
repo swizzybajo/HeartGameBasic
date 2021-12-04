@@ -24,7 +24,7 @@ import com.sun.net.httpserver.Authenticator.Retry;
  * @author Marc Conrad
  *
  */
-public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
+public class GameGUI extends JFrame implements ActionListener, ReplaceScreen, com.perisic.sixeq.peripherals.RegisterationGUI.ReplaceScreen {
 
 	private static final long serialVersionUID = -107785653906635L;
 	ResultSet  resultSet;
@@ -146,9 +146,7 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 			if(colCount >0 ) {
 				resultSet.next();
 				long max = (long)resultSet.getObject(1);
-				return max;
-					
-				
+				return max;		
 			}
 			
 			
@@ -225,6 +223,7 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 	JPanel panel;
 	String player;
 	LoginGUI loginGUI;
+	RegisterationGUI registerationGUI;
 	
 /**
  * Initializes the game. 
@@ -237,6 +236,7 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 		setTitle("What is the value of the heart?");
 		panel = new JPanel();
 		loginGUI = new LoginGUI(this);
+		registerationGUI = new RegisterationGUI(this);
 		panel.add(loginGUI);
 		
 		 retryBtn = new JButton("Retry");
@@ -311,6 +311,8 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 		initTimer();
 	this.username = username;
 		panel.remove(loginGUI);
+		panel.remove(registerationGUI);
+
 //		super.repaint();
 		panel.setLayout(new BorderLayout());
 
@@ -356,5 +358,27 @@ public class GameGUI extends JFrame implements ActionListener, ReplaceScreen {
 
 
 		
+	}
+
+
+	@Override
+	public void moveToRegister() {
+		panel.remove(loginGUI);
+		panel.add(registerationGUI);
+		
+//		panel.repaint();
+		super.revalidate();
+		super.repaint();
+	}
+
+
+	@Override
+	public void moveToLogin() {
+		panel.remove(registerationGUI);
+		panel.add(loginGUI);
+		
+//		panel.repaint();
+		super.revalidate();
+		super.repaint();		
 	}
 }
